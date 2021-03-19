@@ -5,8 +5,8 @@
     <div class="px-4 py-2 items-center flex">
       <div class="h-12 w-12 p-3 bg-gray-100 rounded-lg"></div>
       <div class="px-4 py-2">
-        <h3 class="font-bold">{{title}}</h3>
-        <h3 class="font-normal text-gray-400 text-sm">{{reciter}}</h3>
+        <h3 class="font-bold">{{currentTrack.name}}</h3>
+        <h3 class="font-normal text-gray-400 text-sm">{{}}</h3>
       </div>
     </div>
     <div class="lg:w-8/12 justify-center flex flex-col">
@@ -22,7 +22,7 @@
           <i class="fa fa-play" v-if="!playing"></i>
           <i class="fa fa-pause" v-else></i>
         </button>
-        <button class="px-2 py-1"><i class="fa fa-forward"></i></button>
+        <button class="px-2 py-1" @click="playNext"><i class="fa fa-forward"></i></button>
         <!-- <button class="px-6 py-1 text-gray-400"><i class="fa fa-sync"></i></button> -->
         <button class="px-2 py-1 text-gray-400">
           <i class="fa fa-heart "></i>
@@ -30,7 +30,7 @@
       </div>
       <div class="px-2 order-first w-full lg:order-last">
         <div class="flex justify-center items-center w-full items-center">
-          <span class="flex-grow-0 px-2 text-sm">0:00</span>
+          <span class="flex-grow-0 px-2 text-sm">{{this.currentSecs}}</span>
           <div class="w-full object-center">
             <input
               id="track"
@@ -40,7 +40,7 @@
               max="100"
               step=".1"
               @click="seek"
-              :value="currentSeconds * (100 / durationSeconds)"
+              :value="this.percentageComplete"
             />
           </div>
           <span class="flex-grow-0 px-2 text-sm">0:00</span>
@@ -50,7 +50,7 @@
     <audio
       :loop="looping"
       ref="audio"
-      :src="file"
+      :src="currentTrack.link"
       v-on:timeupdate="update"
       v-on:loadeddata="load"
       v-on:pause="playing = false"
@@ -127,18 +127,6 @@
 export default {
   name: 'Player',
   props: {
-    file: {
-      type: String,
-      default: null
-    },
-    title: {
-      type: String,
-      default: null
-    },
-    reciter: {
-      type: String,
-      default: null
-    },
     playList: {
       type: Array,
       default: null
@@ -146,6 +134,9 @@ export default {
     autoPlay: {
       type: Boolean,
       default: false
+    },
+    clickedSong: {
+      type: Array
     },
     loop: {
       type: Boolean,
@@ -161,13 +152,17 @@ export default {
     previousVolume: 35,
     showVolume: false,
     volume: 100,
+    temp: {},
     currentTrack: {}
   }),
   computed: {
     muted () {
       return this.volume / 100 === 0
     },
-    percentComplete () {
+    percentageComplete: function () {
+      return parseInt((this.currentSeconds / this.durationSeconds) * 100)
+    },
+    currentSecs: function () {
       return parseInt((this.currentSeconds / this.durationSeconds) * 100)
     }
   },
@@ -179,6 +174,9 @@ export default {
     }
   },
   watch: {
+    clickedSong (a, b) {
+      this.temp = a[0]
+    },
     playing (value) {
       if (value) {
         return this.$refs.audio.play()
@@ -187,19 +185,26 @@ export default {
     },
     volume (value) {
       this.$refs.audio.volume = this.volume / 100
+    },
+    temp (old, current) {
+      this.currentTrack = this.temp
+    },
+    playList (oldVal, newVal) {
+      this.currentTrack = this.temp
+      console.log(oldVal, newVal)
     }
   },
   methods: {
     download () {
       this.stop()
-      window.open(this.file, 'download')
+      window.open(this.currentTrack, 'download')
     },
     load () {
       if (this.$refs.audio.readyState >= 2) {
         this.loaded = true
         this.durationSeconds = parseInt(this.$refs.audio.duration)
 
-        return (this.playing = this.autoPlay)
+        return (this.playing = false)
       }
 
       throw new Error('Failed to load sound file.')
@@ -224,12 +229,26 @@ export default {
       this.playing = false
       this.$refs.audio.currentTime = 0
     },
+    playNext () {
+      this.playing = false
+      this.$refs.audio.currentTime = 0
+      this.temp = this.playList[this.playList.findIndex(x => x.id === this.currentTrack.id) + 1]
+      console.log(this.playList.findIndex(x => x.id === this.currentTrack.id))
+    },
     update (e) {
       this.currentSeconds = parseInt(this.$refs.audio.currentTime)
     }
   },
   created () {
     this.looping = this.loop
+  },
+  mounted () {
+    console.log(this.playList)
+  },
+  beforeUpdate () {
+    if (this.playList) {
+      if (this.temp === {}) this.temp = this.playList[0]
+    }
   }
 }
 </script>

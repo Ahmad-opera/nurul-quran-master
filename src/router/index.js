@@ -1,11 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import Category from '../views/Category.vue'
+import Album from '../views/Album.vue'
+import Clip from '../views/Clip.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/category/:id',
+    name: 'Category',
+    component: Category
+  },
+  {
+    path: '/album/:id',
+    name: 'Album',
+    component: Album
+  },
+  {
+    path: '/clip/:id',
+    name: 'Clip',
+    component: Clip
   },
   {
     path: '/about',
