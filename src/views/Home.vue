@@ -1,5 +1,5 @@
 <template>
-  <div class="pt-5 bg-gray-50" v-s >
+  <div class="pt-5 bg-gray-50" >
     <h1 class="font-semibold text-2xl p-2">Top Albums</h1>
     <div class="grid grid-cols-5 gap-5 p-5">
 
