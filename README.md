@@ -1,4 +1,4 @@
-# entry-records
+# Nurul Quran
 
 ## Project setup
 ```
